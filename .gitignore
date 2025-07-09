@@ -11,6 +11,9 @@ recordings/
 # env files (can opt-in for committing if needed)
 .env*
 
+# secrets (never commit actual secrets)
+k8s/secrets.yaml
+
 # vercel
 .vercel
 

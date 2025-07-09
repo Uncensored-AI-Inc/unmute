@@ -35,6 +35,10 @@ spec:
               value: '/usr/local/cuda/lib64:/usr/local/cuda/lib'
             - name: CUDA_HOME
               value: '/usr/local/cuda'
+            - name: RUST_LOG
+              value: 'info'
+            - name: CARGO_LOG
+              value: 'info'
           volumeMounts:
             - name: shared-cargo-registry
               mountPath: /root/.cargo/registry
@@ -49,22 +53,55 @@ spec:
           resources:
             requests:
               nvidia.com/gpu: 1
+              memory: 4Gi
+              cpu: 2
             limits:
               nvidia.com/gpu: 1
+              memory: 8Gi
+              cpu: 4
+          startupProbe:
+            httpGet:
+              path: /metrics
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 120 # 120 * 30s = 60 minutes for cargo build + model loading
+            successThreshold: 1
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
       nodeSelector:
-        nvidia.com/gpu.present: 'true'
+        kubernetes.io/hostname: 'edge-accelerator-0-1c97523c'
       tolerations:
         - key: nvidia.com/gpu
+          operator: Equal
+          value: 'true'
+          effect: NoSchedule
+        - key: fractal-fabric.ai/edge
           operator: Equal
           value: 'true'
           effect: NoSchedule
       volumes:
         - name: shared-cargo-registry
           emptyDir:
-            sizeLimit: 5Gi
+            sizeLimit: 10Gi
         - name: tts-target
           emptyDir:
-            sizeLimit: 10Gi
+            sizeLimit: 15Gi
         - name: shared-uv-cache
           emptyDir:
             sizeLimit: 10Gi

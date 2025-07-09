@@ -64,8 +64,17 @@ kubectl apply -f namespace-and-storage.yaml
 
 # Copy cert-issuer to speech-io namespace
 echo -e "${GREEN}Setting up cert-issuer for speech-io namespace...${NC}"
-kubectl get secret cfapi-token -o yaml | sed 's/namespace: default/namespace: speech-io/' | kubectl apply -f -
-kubectl get originissuer prod-issuer -o yaml | sed 's/namespace: default/namespace: speech-io/' | kubectl apply -f -
+if ! kubectl get secret cfapi-token -n speech-io &>/dev/null; then
+    kubectl get secret cfapi-token -n cert-manager -o yaml | sed 's/namespace: cert-manager/namespace: speech-io/' | kubectl apply -f -
+else
+    echo -e "${YELLOW}cfapi-token secret already exists in speech-io namespace${NC}"
+fi
+
+if ! kubectl get originissuer.cert-manager.k8s.cloudflare.com prod-issuer -n speech-io &>/dev/null; then
+    kubectl get originissuer.cert-manager.k8s.cloudflare.com prod-issuer -n default -o yaml | sed 's/namespace: default/namespace: speech-io/' | kubectl apply -f -
+else
+    echo -e "${YELLOW}prod-issuer originissuer already exists in speech-io namespace${NC}"
+fi
 
 echo -e "${GREEN}Deploying secrets (make sure to update tokens)...${NC}"
 kubectl apply -f secrets.yaml

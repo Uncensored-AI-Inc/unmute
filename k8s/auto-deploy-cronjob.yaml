@@ -49,8 +49,8 @@ metadata:
     app: speech-io
     component: auto-deploy
 spec:
-  # Run every 5 minutes with randomness
-  schedule: '*/5 * * * *'
+  # Run every hour with +/- 5 minutes randomness to allow moshi server builds to complete
+  schedule: '45 * * * *'
 
   # Keep last 3 successful and 1 failed job
   successfulJobsHistoryLimit: 3
@@ -87,8 +87,8 @@ spec:
                 - |
                   set -e
 
-                  # Add randomness - sleep 0-59 seconds to avoid all jobs running at same time
-                  RANDOM_DELAY=$((RANDOM % 60))
+                  # Add randomness - sleep 0-10 minutes to avoid all jobs running at same time
+                  RANDOM_DELAY=$((RANDOM % 600))
                   echo "Sleeping ${RANDOM_DELAY} seconds for randomness..."
                   sleep $RANDOM_DELAY
 

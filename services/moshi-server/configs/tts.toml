@@ -8,7 +8,7 @@ type = "Py"
 path = "/api/tts_streaming"
 text_tokenizer_file = "hf://kyutai/tts-1.6b-en_fr/tokenizer_spm_8k_en_fr_audio.model"
 # A higher batch size allows you to serve more users at once, but with a higher latency and memory usage.
-batch_size = 2
+batch_size = 1
 text_bos_token = 1
 
 [modules.tts_py.py]
